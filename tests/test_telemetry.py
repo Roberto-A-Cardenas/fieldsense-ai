@@ -1,4 +1,8 @@
 from fastapi.testclient import TestClient 
+from sqlalchemy import select
+
+from app.db.database import SessionLocal
+from app.db.models import TelemetryRecord
 
 from app.main import app
 
@@ -20,3 +24,20 @@ def test_reject_invalid_telemetry_value():
   response = client.post("/api/v1/readings", json=payload)
 
   assert response.status_code == 422
+
+
+def test_telemetry_reading_is_persisted():
+  payload = {"device_id": "sensor-persist-001", "field_id": "field-test", "metric": "soil_moisture", "value": 42.5, "unit": "percent", "timestamp": "2026-08-29T18:00:00Z", }
+
+  response = client.post("/api/v1/readings", json=payload)
+
+  assert response.status_code == 201
+
+  with SessionLocal() as db:
+    record = db.scalar(select(TelemetryRecord).where(TelemetryRecord.device_id == "sensor-persist-001") )
+
+    assert record is not None
+    assert record.field_id == "field-test"
+    assert record.metric == "soil_moisture"
+    assert record.value == 42.5
+    assert record.unit == "percent"
