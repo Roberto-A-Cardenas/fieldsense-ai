@@ -1,6 +1,10 @@
 from fastapi import FastAPI
 
+from app.db import models
+from app.db.database import Base, engine
 from app.routes.telemetry import router as telemetry_router
+
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
