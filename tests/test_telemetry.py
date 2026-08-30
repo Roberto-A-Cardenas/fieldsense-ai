@@ -100,7 +100,7 @@ def test_filter_telemetry_by_device_id():
   }
 
   second_payload = {
-    "device_id": "sensor-filter-001",
+    "device_id": "sensor-filter-002",
     "field_id": "field-alpha",
     "metric": "soil_moisture",
     "value": 47.8,

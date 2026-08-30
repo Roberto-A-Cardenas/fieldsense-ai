@@ -29,10 +29,18 @@ def create_reading(
 )
 
 def list_readings(
+    device_id: str | None = None,
     db: Session = Depends(get_db),
 ):
 
-    statement = select(TelemetryRecord).order_by(
+    statement = select(TelemetryRecord)
+
+    if device_id is not None:
+        statement = statement.where(
+            TelemetryRecord.device_id == device_id
+        )
+
+    statement = statement.order_by(
         TelemetryRecord.timestamp.desc()
     )
 
