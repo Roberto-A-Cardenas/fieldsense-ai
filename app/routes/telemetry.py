@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
@@ -47,3 +47,26 @@ def list_readings(
     records = db.scalars(statement).all()
 
     return records
+
+@router.get("/readings/analytics")
+def get_reading_analytics(
+    device_id: str,
+    db: Session = Depends(get_db),
+):
+    statement = select(
+        func.count(TelemetryRecord.value),
+        func.avg(TelemetryRecord.value),
+        func.min(TelemetryRecord.value),
+        func.max(TelemetryRecord.value),
+    ).where(
+        TelemetryRecord.device_id == device_id
+    )
+
+    count, average, minimum, maximum = db.execute(statement).one()
+
+    return {
+        "count": count,
+        "average": average,
+        "minimum": minimum,
+        "maximum": maximum,
+    }

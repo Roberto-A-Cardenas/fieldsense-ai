@@ -132,4 +132,44 @@ def test_filter_telemetry_by_device_id():
     reading["device_id"] == "sensor-filter-001"
     for reading in readings
   )
-  
+
+
+def test_get_telemetry_analytics_by_device_id():
+  first_payload = {
+    "device_id": "sensor-analytics-001",
+    "field_id": "field-analytics",
+    "metric": "soil_moisture",
+    "value": 10.0,
+    "unit": "percent",
+    "timestamp": "2026-08-30T16:00:00Z",
+  }
+
+  second_payload = {
+    "device_id": "sensor-analytics-001",
+    "field_id": "field-analytics",
+    "metric": "soil_moisture",
+    "value": 30.0,
+    "unit": "percent",
+    "timestamp": "2026-08-30T16:05:00Z",
+  }
+
+  first_response = client.post("/api/v1/readings", json=first_payload)
+  second_response = client.post("/api/v1/readings", json=second_payload)
+
+  assert first_response.status_code == 201
+  assert second_response.status_code == 201
+
+  response = client.get(
+    "/api/v1/readings/analytics",
+    params={"device_id": "sensor-analytics-001"},
+  )
+
+  assert response.status_code == 200
+
+  analytics = response.json()
+
+  assert analytics["count"] == 2
+  assert analytics["average"] == 20.0
+  assert analytics["minimum"] == 10.0
+  assert analytics["maximum"] == 30.0
+    
