@@ -54,7 +54,7 @@ def test_telemetry_reading_is_persisted(db_session):
     select(TelemetryRecord).where(
       TelemetryRecord.device_id == "sensor-persist-001"
     )
-  )
+)
 
   assert record is not None
   assert record.field_id == "field-test"
@@ -86,4 +86,50 @@ def test_list_telemetry_readings():
   assert any(
     reading["device_id"] == "sensor-list-001"
     for reading in readings
+)
+
+
+def test_filter_telemetry_by_device_id():
+  first_payload = {
+    "device_id": "sensor-filter-001",
+    "field_id": "field-alpha",
+    "metric": "soil_moisture",
+    "value": 31.5,
+    "unit": "percent",
+    "timestamp": "2026-08-30T15:00:00Z",
+  }
+
+  second_payload = {
+    "device_id": "sensor-filter-001",
+    "field_id": "field-alpha",
+    "metric": "soil_moisture",
+    "value": 47.8,
+    "unit": "percent",
+    "timestamp": "2026-08-30T15:05:00Z",
+  }
+
+  first_response = client.post("/api/v1/readings", json=first_payload)
+  second_response = client.post("/api/v1/readings", json=second_payload)
+
+  assert first_response.status_code == 201
+  assert second_response.status_code == 201
+
+  response = client.get(
+    "/api/v1/readings",
+    params={"device_id": "sensor-filter-001"},
   )
+
+  assert response.status_code == 200
+
+  readings = response.json()
+
+  assert len(readings) >= 1
+  assert any(
+    reading["device_id"] == "sensor-filter-001"
+    for reading in readings
+  )
+  assert all(
+    reading["device_id"] == "sensor-filter-001"
+    for reading in readings
+  )
+  
