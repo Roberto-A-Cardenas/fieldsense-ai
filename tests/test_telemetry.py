@@ -98,7 +98,6 @@ def test_filter_telemetry_by_device_id():
     "unit": "percent",
     "timestamp": "2026-08-30T15:00:00Z",
   }
-
   second_payload = {
     "device_id": "sensor-filter-002",
     "field_id": "field-alpha",
@@ -143,7 +142,6 @@ def test_get_telemetry_analytics_by_device_id():
     "unit": "percent",
     "timestamp": "2026-08-30T16:00:00Z",
   }
-
   second_payload = {
     "device_id": "sensor-analytics-001",
     "field_id": "field-analytics",
@@ -296,7 +294,6 @@ def test_get_telemetry_analytics_with_combined_filters():
     "unit": "percent",
     "timestamp": "2026-08-30T10:00:00Z",
   }
-
   second_payload = {
     "device_id": "sensor-combined-001",
     "field_id": "field-combined",
@@ -305,7 +302,6 @@ def test_get_telemetry_analytics_with_combined_filters():
     "unit": "percent",
     "timestamp": "2026-08-30T12:00:00Z",
   }
-
   wrong_metric_payload = {
     "device_id": "sensor-combined-001",
     "field_id": "field-combined",
@@ -314,7 +310,6 @@ def test_get_telemetry_analytics_with_combined_filters():
     "unit": "fahrenheit",
     "timestamp": "2026-08-30T11:00:00Z",
   }
-
   Outside_time_payload = {
     "device_id": "sensor-combined-001",
     "field_id": "field-combined",
@@ -351,3 +346,20 @@ def test_get_telemetry_analytics_with_combined_filters():
   assert data["average"] == 30.0
   assert data["minimum"] == 20.0
   assert data["maximum"] == 40.0
+
+def test_get_telemetry_analytics_with_no_matching_readings():
+  response = client.get(
+    "/api/v1/readings/analytics",
+    params={
+      "device_id": "sensor-no-data-001",
+    },
+  )
+
+  assert response.status_code == 200
+
+  data = response.json()
+
+  assert data["count"] == 0
+  assert data["average"] == None
+  assert data["minimum"] == None
+  assert data["maximum"] == None
