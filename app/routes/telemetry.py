@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
@@ -58,6 +58,16 @@ def get_reading_analytics(
     end_time: datetime | None = None,
     db: Session = Depends(get_db),
 ):
+    if (
+         start_time is not None
+         and end_time is not None
+         and start_time > end_time
+    ):
+         raise HTTPException(
+              status_code=status.HTTP_400_BAD_REQUEST,
+              detail="start_time must be before or equal to end_time",
+         )
+    
     statement = select(
         func.count(TelemetryRecord.value),
         func.avg(TelemetryRecord.value),

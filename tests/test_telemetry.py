@@ -363,3 +363,19 @@ def test_get_telemetry_analytics_with_no_matching_readings():
   assert data["average"] == None
   assert data["minimum"] == None
   assert data["maximum"] == None
+
+def test_reject_analytics_invalid_time_range():
+  response = client.get(
+    "/api/v1/readings/analytics",
+    params={
+      "device_id": "sensor-invalid-range-001",
+      "start_time": "2026-08-31T12:00:00Z",
+      "end_time": "2026-08-30T12:00:00Z",
+    },
+  )
+
+  assert response.status_code == 400
+
+  data = response.json()
+
+  assert data["detail"] == "start_time must be before or equal to end_time"
