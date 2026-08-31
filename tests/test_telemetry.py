@@ -173,7 +173,6 @@ def test_get_telemetry_analytics_by_device_id():
   assert analytics["minimum"] == 10.0
   assert analytics["maximum"] == 30.0
 
-
 def test_get_telemetry_analytics_by_time_range():
   first_payload = {
     "device_id": "sensor-001",
@@ -227,4 +226,3 @@ def test_get_telemetry_analytics_by_time_range():
   assert data["average"] == 25.0
   assert data["minimum"] == 20.0
   assert data["maximum"] == 30.00
-  
