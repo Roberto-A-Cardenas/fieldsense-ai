@@ -182,7 +182,6 @@ def test_get_telemetry_analytics_by_time_range():
     "unit": "percent",
     "timestamp": "2026-08-29T10:00:00Z",
   }
-
   second_payload = {
     "device_id": "sensor-001",
     "field_id": "field-001",
@@ -191,7 +190,6 @@ def test_get_telemetry_analytics_by_time_range():
     "unit": "percent",
     "timestamp": "2026-08-29T10:00:00Z"
   }
-
   outside_payload = {
     "device_id": "sensor-001",
     "field_id": "field-001",
@@ -277,6 +275,71 @@ def test_get_telemetry_analytics_by_metric():
     params={
       "device_id": "sensor-metric-001",
       "metric": "soil_moisture",
+    },
+  )
+
+  assert response.status_code == 200
+
+  data = response.json()
+
+  assert data["count"] == 2
+  assert data["average"] == 30.0
+  assert data["minimum"] == 20.0
+  assert data["maximum"] == 40.0
+
+def test_get_telemetry_analytics_with_combined_filters():
+  first_payload = {
+    "device_id": "sensor-combined-001",
+    "field_id": "field-combined",
+    "metric": "soil_moisture",
+    "value": 20.0,
+    "unit": "percent",
+    "timestamp": "2026-08-30T10:00:00Z",
+  }
+
+  second_payload = {
+    "device_id": "sensor-combined-001",
+    "field_id": "field-combined",
+    "metric": "soil_moisture",
+    "value": 40.0,
+    "unit": "percent",
+    "timestamp": "2026-08-30T12:00:00Z",
+  }
+
+  wrong_metric_payload = {
+    "device_id": "sensor-combined-001",
+    "field_id": "field-combined",
+    "metric": "temperature",
+    "value": 90.0,
+    "unit": "fahrenheit",
+    "timestamp": "2026-08-30T11:00:00Z",
+  }
+
+  Outside_time_payload = {
+    "device_id": "sensor-combined-001",
+    "field_id": "field-combined",
+    "metric": "soil_moisture",
+    "value": 100.0,
+    "unit": "percent",
+    "timestamp": "2026-08-31T12:00:00Z",
+  }
+
+  responses = [
+    client.post("/api/v1/readings", json=first_payload),
+    client.post("/api/v1/readings", json=second_payload),
+    client.post("/api/v1/readings", json=wrong_metric_payload),
+    client.post("/api/v1/readings", json=Outside_time_payload),
+  ]
+
+  assert all(response.status_code == 201 for response in responses)
+
+  response = client.get(
+    "/api/v1/readings/analytics",
+    params={
+      "device_id": "sensor-combined-001",
+      "metric": "soil_moisture",
+      "start_time": "2026-08-30T00:00:00Z",
+      "end_time": "2026-08-30T23:59:59Z",
     },
   )
 
