@@ -6,8 +6,11 @@ from sqlalchemy.orm import Session
 
 from app.db.database import get_db
 from app.db.models import TelemetryRecord
-from app.models.telemetry import TelemetryReading, TelemetryRecordResponse
-
+from app.models.telemetry import (
+  TelemetryAnalyticsResponse,
+  TelemetryReading, 
+  TelemetryRecordResponse
+)
 
 router = APIRouter()
 
@@ -50,7 +53,10 @@ def list_readings(
 
     return records
 
-@router.get("/readings/analytics")
+@router.get(
+  "/readings/analytics",
+  response_model=TelemetryAnalyticsResponse,  
+)
 def get_reading_analytics(
     device_id: str,
     metric: str | None = None,

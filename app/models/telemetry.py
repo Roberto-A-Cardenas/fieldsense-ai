@@ -11,6 +11,11 @@ class TelemetryReading(BaseModel):
  unit: str
  timestamp: datetime
 
+class TelemetryAnalyticsResponse(BaseModel):
+ count: int
+ average: float | None
+ minimum: float | None
+ maximum: float | None
 
 class TelemetryRecordResponse(TelemetryReading):
  id: int
