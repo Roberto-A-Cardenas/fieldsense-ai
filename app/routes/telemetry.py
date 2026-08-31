@@ -53,6 +53,7 @@ def list_readings(
 @router.get("/readings/analytics")
 def get_reading_analytics(
     device_id: str,
+    metric: str | None = None,
     start_time: datetime | None = None,
     end_time: datetime | None = None,
     db: Session = Depends(get_db),
@@ -66,7 +67,17 @@ def get_reading_analytics(
         TelemetryRecord.device_id == device_id
     )
 
+    if metric is not None:
+            statement = statement.where(
+                TelemetryRecord.metric == metric
+            )
+
     if start_time is not None:
+        statement = statement.where(
+            TelemetryRecord.timestamp >= start_time
+        )
+
+    if end_time is not None:
         statement = statement.where(
             TelemetryRecord.timestamp <= end_time
         )

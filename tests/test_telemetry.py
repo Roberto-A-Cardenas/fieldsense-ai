@@ -226,3 +226,65 @@ def test_get_telemetry_analytics_by_time_range():
   assert data["average"] == 25.0
   assert data["minimum"] == 20.0
   assert data["maximum"] == 30.00
+
+def test_get_telemetry_analytics_by_metric():
+  moisture_payload = {
+    "device_id": "sensor-metric-001",
+    "field_id": "field-metric",
+    "metric": "soil_moisture",
+    "value": 20.0,
+    "unit": "percent",
+    "timestamp": "2026-08-30T18:00:00Z",
+  }
+  second_moisture_payload = {
+    "device_id": "sensor-metric-001",
+    "field_id": "field-metric",
+    "metric": "soil_moisture",
+    "value": 40.0,
+    "unit": "percent",
+    "timestamp": "2026-08-30T18:05:00Z",
+  }
+  temperature_payload = {
+    "device_id": "sensor-metric-001",
+    "field_id": "field-metric",
+    "metric": "temperature",
+    "value": 100.0,
+    "unit": "fahrenheit",
+    "timestamp": "2026-08-30T18:10:00Z",
+  }
+
+  first_response = client.post(
+    "/api/v1/readings",
+    json=moisture_payload,
+  )
+
+  second_response = client.post(
+    "/api/v1/readings",
+    json=second_moisture_payload,
+  )
+
+  temperature_response = client.post(
+    "/api/v1/readings",
+    json=temperature_payload,
+  )
+
+  assert first_response.status_code == 201
+  assert second_response.status_code == 201
+  assert temperature_response.status_code == 201
+
+  response = client.get(
+    "/api/v1/readings/analytics",
+    params={
+      "device_id": "sensor-metric-001",
+      "metric": "soil_moisture",
+    },
+  )
+
+  assert response.status_code == 200
+
+  data = response.json()
+
+  assert data["count"] == 2
+  assert data["average"] == 30.0
+  assert data["minimum"] == 20.0
+  assert data["maximum"] == 40.0
