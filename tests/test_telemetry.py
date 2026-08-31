@@ -172,4 +172,59 @@ def test_get_telemetry_analytics_by_device_id():
   assert analytics["average"] == 20.0
   assert analytics["minimum"] == 10.0
   assert analytics["maximum"] == 30.0
-    
+
+
+def test_get_telemetry_analytics_by_time_range():
+  first_payload = {
+    "device_id": "sensor-001",
+    "field_id": "field-001",
+    "metric": "soil_moisture",
+    "value": 20.0,
+    "unit": "percent",
+    "timestamp": "2026-08-29T10:00:00Z",
+  }
+
+  second_payload = {
+    "device_id": "sensor-001",
+    "field_id": "field-001",
+    "metric": "soil_moisture",
+    "value": 30.0,
+    "unit": "percent",
+    "timestamp": "2026-08-29T10:00:00Z"
+  }
+
+  outside_payload = {
+    "device_id": "sensor-001",
+    "field_id": "field-001",
+    "metric": "soil_moisture",
+    "value": 100.0,
+    "unit": "percent",
+    "timestamp": "2026-08-30T12:00:00Z",
+  }
+
+  first_response = client.post("/api/v1/readings", json=first_payload)
+  second_response = client.post("/api/v1/readings", json=second_payload)
+  outside_response = client.post("/api/v1/readings", json=outside_payload)
+
+  assert first_response.status_code == 201
+  assert second_response.status_code == 201
+  assert outside_response.status_code == 201
+
+  response =client.get(
+    "/api/v1/readings/analytics",
+    params={
+      "device_id": "sensor-001",
+      "start_time": "2026-08-29T00:00:00",
+      "end_time": "2026-08-29T23:59:59",
+    },
+  )
+
+  assert response.status_code == 200
+
+  data = response.json()
+
+  assert data["count"] == 2
+  assert data["average"] == 25.0
+  assert data["minimum"] == 20.0
+  assert data["maximum"] == 30.00
+  

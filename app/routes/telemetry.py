@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, status
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -51,6 +53,8 @@ def list_readings(
 @router.get("/readings/analytics")
 def get_reading_analytics(
     device_id: str,
+    start_time: datetime | None = None,
+    end_time: datetime | None = None,
     db: Session = Depends(get_db),
 ):
     statement = select(
@@ -61,6 +65,11 @@ def get_reading_analytics(
     ).where(
         TelemetryRecord.device_id == device_id
     )
+
+    if start_time is not None:
+        statement = statement.where(
+            TelemetryRecord.timestamp <= end_time
+        )
 
     count, average, minimum, maximum = db.execute(statement).one()
 
