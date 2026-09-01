@@ -43,7 +43,7 @@ class InsightService:
           metric=metric,
           summary="Soil moisture is above the configured threshold.",
           recommendation="Inspect drainage and irrigation if appropriate.",
-          severity="warning", 
+          severity="warning",
         )
 
      return self.generate_insight(
