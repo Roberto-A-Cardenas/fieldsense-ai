@@ -22,3 +22,12 @@ class TelemetryRecordResponse(TelemetryReading):
  created_at: datetime
 
  model_config = ConfigDict(from_attributes=True)
+
+class TelemetryAnomalyResponse(BaseModel):
+ device_id: str
+ metric: str
+ value: float
+ threshold: float | None
+ classification: str
+ status: str
+ timestamp: datetime

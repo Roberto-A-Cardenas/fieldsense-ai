@@ -8,9 +8,12 @@ from app.db.database import get_db
 from app.db.models import TelemetryRecord
 from app.models.telemetry import (
   TelemetryAnalyticsResponse,
+  TelemetryAnomalyResponse,
   TelemetryReading, 
   TelemetryRecordResponse
 )
+
+from app.services.anomaly import detect_anomaly
 
 router = APIRouter()
 
@@ -106,3 +109,61 @@ def get_reading_analytics(
         "minimum": minimum,
         "maximum": maximum,
     }
+
+@router.get(
+     "/readings/anomalies",
+     response_model=list[TelemetryAnomalyResponse],
+)
+def get_reading_anomalies(
+     device_id: str | None = None,
+     metric: str | None = None,
+     start_time: datetime | None = None,
+     end_time: datetime | None = None,
+     db: Session = Depends(get_db),
+):
+     if (
+         start_time is not None
+         and end_time is not None
+         and start_time > end_time 
+     ):
+          raise HTTPException(
+               status_code=status.HTTP_400_BAD_REQUEST,
+               detail="start_time must be before or equal to end_time",
+          )
+
+     statement = select(TelemetryRecord)
+
+     if device_id is not None:
+          statement = statement.where(
+               TelemetryRecord.device_id == device_id
+          )
+
+     if metric is not None:
+            statement = statement.where(
+                TelemetryRecord.metric == metric
+            )
+
+     if start_time is not None:
+            statement = statement.where(
+                TelemetryRecord.timestamp >= start_time
+            )
+     if end_time is not None:
+            statement = statement.where(
+                TelemetryRecord.timestamp <= end_time
+            )
+
+     statement = statement.order_by(
+         TelemetryRecord.timestamp.desc()
+    )
+
+     records = db.scalars(statement).all()
+
+     anomalies =[]
+
+     for record in records:
+         result = detect_anomaly(record)
+
+         if result["classification"] != "NORMAL":
+             anomalies.append(result)
+
+     return anomalies
