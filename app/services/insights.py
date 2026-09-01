@@ -1,4 +1,7 @@
+from app.db.models import TelemetryRecord
 from app.models.insight import InsightResponse, InsightSeverity
+from app.services.anomaly import detect_anomaly
+
 
 class InsightService:
   """Generates actionable insights from processed telemetry data."""
@@ -50,3 +53,11 @@ class InsightService:
         recommendation="Continue monitoring telemetry for changes.",
         severity="normal",
      )
+
+  def generate_from_reading(
+        self,
+        reading: TelemetryRecord,
+    ) -> InsightResponse:
+        anomaly = detect_anomaly(reading)
+
+        return self.generate_from_anomaly(anomaly)
